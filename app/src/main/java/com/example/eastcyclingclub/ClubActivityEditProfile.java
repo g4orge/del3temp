@@ -57,7 +57,7 @@ public class ClubActivityEditProfile extends AppCompatActivity {
             public void onClick(View v) {
 
 
-                pickImage();
+                changeImage();
             }
 
         });
@@ -246,7 +246,7 @@ public class ClubActivityEditProfile extends AppCompatActivity {
 
         });
     }
-    private void pickImage() {
+    private void changeImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -290,6 +290,8 @@ public class ClubActivityEditProfile extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode == 100 && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            binding.changePictureImageButton.setImageURI(imageUri);
 
         }
     }
