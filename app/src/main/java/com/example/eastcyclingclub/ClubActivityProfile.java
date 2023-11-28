@@ -1,8 +1,11 @@
 package com.example.eastcyclingclub;
+import android.graphics.Bitmap;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +20,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 
 public class ClubActivityProfile extends AppCompatActivity {
@@ -113,6 +118,7 @@ public class ClubActivityProfile extends AppCompatActivity {
         final String[] instagramUsernameFromDatabase = new String[1];
         final String[] twitterUsernameFromDatabase = new String[1];
         final String[] facebookLinkFromDatabase = new String[1];
+        final String[] profilePicturePathFromDatabase = new String[1];
 
         specificUserReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -126,11 +132,13 @@ public class ClubActivityProfile extends AppCompatActivity {
                     instagramUsernameFromDatabase[0] = dataSnapshot.child("instagramUsername").getValue(String.class);
                     twitterUsernameFromDatabase[0] = dataSnapshot.child("twitterUsername").getValue(String.class);
                     facebookLinkFromDatabase[0] = dataSnapshot.child("facebookLink").getValue(String.class);
+                    profilePicturePathFromDatabase[0] = dataSnapshot.child("profilePicturePath").getValue(String.class);
 
                     profileName.setText("Name: " + nameFromDatabase[0]);
                     profileRole.setText("Role: " + roleFromDatabase[0]);
                     profileUsername.setText("Username: " + usernameFromDatabase[0]);
                     phoneNumber.setText("Phone number: " + phoneNumberFromDatabase[0]);
+
 
                     if (mainContactFromDatabase[0].isEmpty()) {
                         mainContact.setText("Main contact: None");
@@ -153,6 +161,25 @@ public class ClubActivityProfile extends AppCompatActivity {
                         twitterUsername.setText("Twitter username: " + twitterUsernameFromDatabase[0]);
                     }
 
+                    if (profilePicturePathFromDatabase[0] != null && !profilePicturePathFromDatabase[0].isEmpty()) {
+                        // Use Firebase Storage to download the image
+                        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child(profilePicturePathFromDatabase[0]);
+
+                        final long ONE_MEGABYTE = 1024 * 1024;
+                        storageReference.getBytes(ONE_MEGABYTE)
+                                .addOnSuccessListener(bytes -> {
+                                    // Create a Bitmap from the bytes and set it to the ImageView
+                                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                    clubPicture.setImageBitmap(bitmap);
+                                })
+                                .addOnFailureListener(exception -> {
+                                    // Handle failures
+                                    Log.e("TAG", "Failed to download profile picture", exception);
+                                });
+                    } else {
+                        // Set a default image or handle the case when there's no profile picture
+                        clubPicture.setImageResource(R.drawable.default_pfp);
+                    }
                     if (facebookLinkFromDatabase[0].isEmpty()) {
                         facebookLink.setText("Facebook username: None");
                     }

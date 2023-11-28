@@ -268,12 +268,23 @@ public class ClubActivityEditProfile extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        binding.changePictureImageButton.setImageURI(null);
-                        Toast.makeText(ClubActivityEditProfile.this, "Succesfully Uploaded", Toast.LENGTH_SHORT).show();
-                        if (progressDialog.isShowing())
-                            progressDialog.dismiss();
+                        storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                // Update the user's profile picture URL in the database
+                                DatabaseReference specificUserReference = FirebaseDatabase.getInstance().getReference().child("users").child(userUsername);
+                                specificUserReference.child("profilePictureUrl").setValue(uri.toString());
 
+                                // Clear the image view
+                                binding.changePictureImageButton.setImageURI(null);
+
+                                Toast.makeText(ClubActivityEditProfile.this, "Successfully Uploaded", Toast.LENGTH_SHORT).show();
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                            }
+                        });
                     }
+
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
@@ -289,7 +300,7 @@ public class ClubActivityEditProfile extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 100 && data != null && data.getData() != null) {
+        if(requestCode == pickImage && data != null && data.getData() != null) {
             imageUri = data.getData();
             binding.changePictureImageButton.setImageURI(imageUri);
 
